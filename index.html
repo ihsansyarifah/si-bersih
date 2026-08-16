@@ -688,20 +688,6 @@
       accent-color: #8D6E63;
       margin: 0;
     }
-    .harga-simulasi-input {
-      width: 160px;
-      padding: 6px 10px;
-      border: 1.5px solid #e0d6ce;
-      border-radius: 8px;
-      font-size: 0.8125rem;
-      font-family: inherit;
-      transition: 0.2s;
-    }
-    .harga-simulasi-input:focus {
-      outline: none;
-      border-color: #8D6E63;
-      box-shadow: 0 0 0 4px rgba(141,110,99,0.10);
-    }
     .total-auto {
       font-weight: 700;
       color: #6D4C41;
@@ -741,6 +727,28 @@
     }
     .purchase-summary .total-label { font-weight: 700; color: #6D4C41; }
     .purchase-summary .total-value { font-weight: 800; color: #6D4C41; font-size: 1.2rem; }
+    .detail-bahan-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      margin: 6px 0 12px 0;
+    }
+    .detail-bahan-table th {
+      background: #ede7e1;
+      text-align: left;
+      padding: 6px 10px;
+      font-weight: 700;
+      color: #3E2723;
+      border-bottom: 2px solid #d5c8be;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+    .detail-bahan-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #ede7e1;
+    }
+    .detail-bahan-table .text-right { text-align: right; }
+    .detail-bahan-table .total-row td { font-weight: 700; color: #6D4C41; border-top: 2px solid #8D6E63; }
   </style>
 </head>
 <body>
@@ -776,7 +784,7 @@
       <button class="menu-toggle" id="menuToggle" aria-label="Menu">
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <span class="brand">🧼 SI.BERSIH <small>v3.6</small></span>
+      <span class="brand">🧼 SI.BERSIH <small>v3.7</small></span>
       <span id="stokNotifBadge" style="display:none;" class="notif-badge">!</span>
     </div>
     <div class="user-info">
@@ -805,9 +813,6 @@
       </a>
       <a data-page="simulasi" class="role-admin-full role-atasan role-investor">
         <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/><path d="M12 7v5l3 3"/></svg></span> Simulasi
-      </a>
-      <a data-page="hargasimulasi" class="admin-only" style="display:none;">
-        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span> Harga Simulasi
       </a>
       <a data-page="audit" class="admin-only" style="display:none;">
         <span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span> Riwayat Edit
@@ -1210,20 +1215,20 @@
     <p class="text-muted" style="margin-bottom:16px;">Hitung perkiraan biaya produksi dan keuntungan sebelum Anda benar-benar memproduksi.</p>
     <div class="form-row">
       <div class="form-group"><label>Formulasi</label><select id="simulasiForm"></select></div>
-      <div class="form-group"><label>Liter</label><input type="number" id="simulasiLiter" step="0.1" placeholder="0"></div>
+      <div class="form-group"><label>Liter</label><input type="number" id="simulasiLiter" step="0.1" placeholder="0" oninput="hitungSimulasi()"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Jenis Kemasan</label><select id="simulasiKemasan"></select></div>
       <div class="form-group" style="flex:1 1 100%;">
         <label>Mode Isi</label>
         <div class="radio-group">
-          <label><input type="radio" name="simulasiIsiMode" value="otomatis" checked onchange="toggleSimulasiIsiMode()"> Otomatis (Volume × BJ)</label>
-          <label><input type="radio" name="simulasiIsiMode" value="manual" onchange="toggleSimulasiIsiMode()"> Manual (gram)</label>
+          <label><input type="radio" name="simulasiIsiMode" value="otomatis" checked onchange="toggleSimulasiIsiMode(); hitungSimulasi();"> Otomatis (Volume × BJ)</label>
+          <label><input type="radio" name="simulasiIsiMode" value="manual" onchange="toggleSimulasiIsiMode(); hitungSimulasi();"> Manual (gram)</label>
         </div>
       </div>
-      <div class="form-group"><label>Berat Isi per Kemasan (gram)</label><input type="number" id="simulasiBeratIsi" step="0.1" placeholder="0"></div>
-      <div class="form-group"><label>Jumlah Unit</label><input type="number" id="simulasiJmlUnit" step="1" placeholder="0"></div>
-      <div class="form-group"><label>Harga Jual/Unit (Rp)</label><input type="number" id="simulasiHargaJual" step="1" placeholder="0"></div>
+      <div class="form-group"><label>Berat Isi per Kemasan (gram)</label><input type="number" id="simulasiBeratIsi" step="0.1" placeholder="0" oninput="hitungSimulasi()"></div>
+      <div class="form-group"><label>Jumlah Unit</label><input type="number" id="simulasiJmlUnit" step="1" placeholder="0" oninput="hitungSimulasi()"></div>
+      <div class="form-group"><label>Harga Jual/Unit (Rp)</label><input type="number" id="simulasiHargaJual" step="1" placeholder="0" oninput="hitungSimulasi()"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Biaya Operasional</label>
@@ -1243,23 +1248,6 @@
       Hitung Simulasi
     </button>
     <div id="simulasiHasil" style="margin-top:20px; display:none;"></div>
-  </div>
-
-  <!-- HARGA SIMULASI -->
-  <div class="page" id="page-hargasimulasi">
-    <h2 style="margin-bottom:16px; color:#6D4C41; display:flex; align-items:center; gap:10px;">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6D4C41" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      Harga Simulasi
-    </h2>
-    <p class="text-muted" style="margin-bottom:16px;">
-      Atur harga bahan yang digunakan khusus untuk perhitungan simulasi dan untuk tampilan di halaman Stok Bahan (bagi non-admin).
-      <strong>Harga ini tidak mempengaruhi harga rata-rata pembelian</strong> dan hanya terlihat oleh admin penuh.
-    </p>
-    <div id="hargaSimulasiContainer"></div>
-    <button class="btn btn-primary" onclick="simpanHargaSimulasi()" style="margin-top:12px;">
-      <span class="icon"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
-      Simpan Semua Harga
-    </button>
   </div>
 
   <!-- AUDIT LOG -->
@@ -1293,33 +1281,11 @@
   <button id="fontDec" title="Perkecil font">A−</button>
   <button id="fontInc" title="Perbesar font">A+</button>
 </div>
+
 <script>
 // ================================================================
-// SERVICE WORKER
+// SERVICE WORKER (dinonaktifkan karena blob URL tidak didukung)
 // ================================================================
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open('sibersih-v3').then(c => c.addAll(['/','/index.html'])));
-      self.skipWaiting();
-    });
-    self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
-    self.addEventListener('fetch', e => {
-      e.respondWith(
-        caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-          if (res && res.status === 200) {
-            const clone = res.clone();
-            caches.open('sibersih-v3').then(c => c.put(e.request, clone));
-          }
-          return res;
-        })).catch(() => new Response('Offline', { status: 503 }))
-      );
-    });
-  `;
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
-}
 
 // ================================================================
 // FONT SIZE
@@ -1402,8 +1368,7 @@ function getDefaultData() {
     peralatan: [],
     modalTambahan: [],
     keuangan: { pemasukan: [], pengeluaran: [], saldoAwal: 0 },
-    auditLogs: [],
-    hargaSimulasi: {}
+    auditLogs: []
   };
 }
 
@@ -1522,22 +1487,13 @@ function migrateHargaRataRata() {
 }
 
 // ================================================================
-// HARGA UNTUK ROLE
+// HARGA UNTUK ROLE (sekarang semua role pakai harga rata-rata)
 // ================================================================
 function getHargaBahanForRole(bahanId) {
-  if (userRole === 'admin-full') {
-    return getHargaRataRataBahan(bahanId);
-  }
-  if (data.hargaSimulasi && data.hargaSimulasi[bahanId] !== undefined && data.hargaSimulasi[bahanId] !== null) {
-    return data.hargaSimulasi[bahanId];
-  }
-  return 0;
+  return getHargaRataRataBahan(bahanId);
 }
 
 function hitungBiayaBahanProduksi(prod) {
-  if (userRole === 'admin-full') {
-    return prod.biayaBahan || 0;
-  }
   const f = getFormulasi(prod.formulasiId);
   if (!f) return 0;
   const totalBerat = prod.jumlahLiter * (prod.bj || 1.025);
@@ -1551,8 +1507,7 @@ function hitungBiayaBahanProduksi(prod) {
     if (it.isLarutan && it.konsentrasiLarutan > 0) {
       butuhStok = butuhLarutan * (it.konsentrasiLarutan / 100);
     }
-    const hargaSim = data.hargaSimulasi && data.hargaSimulasi[it.bahanId] !== undefined ? data.hargaSimulasi[it.bahanId] : 0;
-    totalBiaya += butuhStok * hargaSim;
+    totalBiaya += butuhStok * (b.hargaRataRata || 0);
   });
   return totalBiaya;
 }
@@ -1648,7 +1603,7 @@ function showApp() {
   });
 
   const roleMenus = {
-    'admin-full': ['dashboard','stok','peralatan','produksi','penjualan','laporan','simulasi','hargasimulasi','audit'],
+    'admin-full': ['dashboard','stok','peralatan','produksi','penjualan','laporan','simulasi','audit'],
     'atasan': ['dashboard','stok','peralatan','produksi','penjualan','laporan','simulasi'],
     'investor': ['dashboard','peralatan','penjualan','laporan','simulasi'],
     'operasional': ['dashboard','stok','produksi'],
@@ -1660,7 +1615,6 @@ function showApp() {
     link.style.display = allowed.includes(page) ? 'flex' : 'none';
   });
   document.querySelector('.menu-dropdown a[data-page="audit"]').style.display = (userRole === 'admin-full') ? 'flex' : 'none';
-  document.querySelector('.menu-dropdown a[data-page="hargasimulasi"]').style.display = (userRole === 'admin-full') ? 'flex' : 'none';
   navigateTo('dashboard');
 }
 function navigateTo(page) {
@@ -1712,7 +1666,6 @@ function loadDataFromFirestore() {
             firestoreData.formulasi = defaultData.formulasi;
           }
           if (!firestoreData.auditLogs) firestoreData.auditLogs = [];
-          if (!firestoreData.hargaSimulasi) firestoreData.hargaSimulasi = {};
         }
       }
 
@@ -1744,7 +1697,6 @@ function loadDataFromFirestore() {
       }
 
       data = { ...defaultData, ...firestoreData };
-      if (!data.hargaSimulasi) data.hargaSimulasi = {};
       let perluMigrasi = false;
       data.bahan.forEach(b => {
         if (b.hargaRataRata === 0) {
@@ -1816,7 +1768,6 @@ function restoreData(event) {
       if (!confirm('⚠️ Restore akan menimpa SEMUA data saat ini! Lanjutkan?')) return;
       if (!confirm('⚠️ Yakin? Data lama akan hilang jika belum di-backup!')) return;
       data = imported;
-      if (!data.hargaSimulasi) data.hargaSimulasi = {};
       renderAll();
       saveDataToFirestore();
       showAlert('✅ Data berhasil direstore!', 'success');
@@ -2152,7 +2103,6 @@ function renderAll() {
   renderRiwayat();
   renderPeralatan();
   renderAuditLog();
-  renderHargaSimulasi();
   checkStokWarnings();
   updateSimulasiDropdowns();
   populateItemBahanSelects();
@@ -2241,9 +2191,7 @@ function renderBahan() {
   tbody.innerHTML = data.bahan.map(b => {
     const harga = getHargaBahanForRole(b.id);
     const isAdmin = userRole === 'admin-full';
-    const hargaTxt = (isAdmin && harga > 0) ? rupiah(harga) + '/' + b.satuanDasar :
-                    (!isAdmin && harga > 0) ? rupiah(harga) + '/' + b.satuanDasar :
-                    (isAdmin && harga === 0) ? '-' : (harga === 0 ? 'Belum diatur' : '-');
+    const hargaTxt = (harga > 0) ? rupiah(harga) + '/' + b.satuanDasar : '-';
     const isLow = b.stok <= (b.threshold || 1);
     let aksi = '';
     if (userRole === 'admin-full' || userRole === 'operasional' || userRole === 'atasan') {
@@ -2278,7 +2226,7 @@ function editHargaBahan(id) {
       <div class="form-group"><label>Nama Bahan</label><input value="${b.nama}" disabled style="background:#f5f0eb;"></div>
       <div class="form-group"><label>Harga Rata-rata (per ${b.satuanDasar})</label><input type="number" id="modalHargaBaru" step="0.01" value="${b.hargaRataRata || 0}"></div>
     </div>
-    <p class="text-muted">Harga rata-rata aktual dari pembelian. Hanya admin yang bisa melihat.</p>
+    <p class="text-muted">Harga rata-rata aktual dari pembelian.</p>
   `, () => {
     const hargaBaru = parseFloat(document.getElementById('modalHargaBaru').value);
     if (isNaN(hargaBaru) || hargaBaru < 0) { showAlert('Masukkan harga valid.', 'error'); return; }
@@ -2798,7 +2746,6 @@ function buatProduksi() {
   });
 
   let biayaBahan = 0;
-  const isAdmin = userRole === 'admin-full';
   f.items.forEach(it => {
     const b = getBahan(it.bahanId);
     if (!b) return;
@@ -2808,8 +2755,7 @@ function buatProduksi() {
     if (it.isLarutan && it.konsentrasiLarutan > 0) {
       butuhStok = butuhLarutan * (it.konsentrasiLarutan / 100);
     }
-    const harga = isAdmin ? (b.hargaRataRata || 0) : (data.hargaSimulasi?.[it.bahanId] || 0);
-    biayaBahan += butuhStok * harga;
+    biayaBahan += butuhStok * (b.hargaRataRata || 0);
   });
 
   const opsMode = document.getElementById('produksiOpsMode').value;
@@ -3434,7 +3380,7 @@ function renderPeralatan() {
 }
 
 // ================================================================
-// SIMULASI
+// SIMULASI (dengan rincian harga per bahan)
 // ================================================================
 function toggleSimulasiIsiMode() {
   const mode = document.querySelector('input[name="simulasiIsiMode"]:checked')?.value || 'otomatis';
@@ -3461,6 +3407,7 @@ function updateSimulasiDropdowns() {
   toggleSimulasiIsiMode();
   hitungSimulasi();
 }
+
 function hitungSimulasi() {
   const formId = document.getElementById('simulasiForm')?.value;
   const liter = parseFloat(document.getElementById('simulasiLiter')?.value) || 0;
@@ -3471,7 +3418,7 @@ function hitungSimulasi() {
   const opsManual = parseFloat(document.getElementById('simulasiOpsManual')?.value) || 0;
 
   const container = document.getElementById('simulasiHasil');
-  if (!formId || !liter || liter <= 0 || !kemasanId || !jmlUnit || jmlUnit <= 0) {
+  if (!formId || !liter || liter <= 0 || !kemasanId || !jmlUnit || jmlUnit <= 0 || !hargaJual || hargaJual <= 0) {
     container.style.display = 'none';
     return;
   }
@@ -3481,8 +3428,9 @@ function hitungSimulasi() {
   if (!f || !k) { container.style.display = 'none'; return; }
 
   const totalBerat = liter * (f.bj || 1.025);
+  const detailBahan = [];
   let biayaBahan = 0;
-  const isAdmin = userRole === 'admin-full';
+
   f.items.forEach(it => {
     const b = getBahan(it.bahanId);
     if (!b) return;
@@ -3492,8 +3440,17 @@ function hitungSimulasi() {
     if (it.isLarutan && it.konsentrasiLarutan > 0) {
       butuhStok = butuhLarutan * (it.konsentrasiLarutan / 100);
     }
-    const harga = isAdmin ? (b.hargaRataRata || 0) : (data.hargaSimulasi?.[it.bahanId] || 0);
-    biayaBahan += butuhStok * harga;
+    const harga = b.hargaRataRata || 0;
+    const biayaItem = butuhStok * harga;
+    biayaBahan += biayaItem;
+
+    detailBahan.push({
+      nama: b.nama,
+      kebutuhan: butuhStok,
+      satuan: b.satuanDasar,
+      hargaSatuan: harga,
+      biaya: biayaItem
+    });
   });
 
   const mode = document.querySelector('input[name="simulasiIsiMode"]:checked')?.value || 'otomatis';
@@ -3520,8 +3477,35 @@ function hitungSimulasi() {
   }
   const totalBiaya = biayaBahan + biayaKemasan + biayaOps;
   const totalPendapatan = jmlUnit * hargaJual;
-  const laba = totalPendapatan - totalBiaya;
-  const margin = totalBiaya > 0 ? (laba / totalBiaya * 100) : 0;
+
+  const biayaPerUnit = totalBiaya / jmlUnit;
+  const labaPerUnit = hargaJual - biayaPerUnit;
+  const labaTotal = labaPerUnit * jmlUnit;
+  const margin = totalBiaya > 0 ? (labaTotal / totalBiaya * 100) : 0;
+
+  // Buat tabel rincian bahan
+  let detailHtml = '';
+  if (detailBahan.length > 0) {
+    detailHtml = `
+      <table class="detail-bahan-table">
+        <thead><tr><th>Bahan</th><th>Kebutuhan</th><th>Harga Satuan</th><th>Biaya</th></tr></thead>
+        <tbody>
+          ${detailBahan.map(d => `
+            <tr>
+              <td>${d.nama}</td>
+              <td>${d.kebutuhan.toFixed(3)} ${d.satuan}</td>
+              <td>${rupiah(d.hargaSatuan)}</td>
+              <td class="text-right">${rupiah(d.biaya)}</td>
+            </tr>
+          `).join('')}
+          <tr class="total-row">
+            <td colspan="3"><strong>Total Biaya Bahan</strong></td>
+            <td class="text-right"><strong>${rupiah(biayaBahan)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
 
   container.innerHTML = `
     <div class="simulasi-card">
@@ -3531,61 +3515,32 @@ function hitungSimulasi() {
       <div class="simulasi-hasil-item"><span class="label">Kemasan</span><span class="value">${k.nama} (${jmlUnit} unit)</span></div>
       <div class="simulasi-hasil-item"><span class="label">Berat per Kemasan</span><span class="value">${beratPerUnit.toFixed(1)} g</span></div>
       <div class="simulasi-hasil-item"><span class="label">Total Berat Kemasan</span><span class="value">${(totalBeratKemasan).toFixed(3)} kg</span></div>
-      <div class="simulasi-hasil-item"><span class="label">Biaya Bahan</span><span class="value">${rupiah(biayaBahan)}</span></div>
+
+      <div style="margin-top:8px;">
+        <strong style="color:#6D4C41;">🧪 Rincian Biaya Bahan</strong>
+        ${detailHtml}
+      </div>
+
       <div class="simulasi-hasil-item"><span class="label">Biaya Kemasan</span><span class="value">${rupiah(biayaKemasan)}</span></div>
       <div class="simulasi-hasil-item"><span class="label">Biaya Operasional</span><span class="value">${rupiah(biayaOps)}</span></div>
       <div class="simulasi-hasil-item total"><span class="label">Total Biaya</span><span class="value">${rupiah(totalBiaya)}</span></div>
-      <div class="simulasi-hasil-item"><span class="label">Harga Jual/Unit</span><span class="value">${rupiah(hargaJual)}</span></div>
-      <div class="simulasi-hasil-item"><span class="label">Total Pendapatan</span><span class="value">${rupiah(totalPendapatan)}</span></div>
-      <div class="simulasi-hasil-item laba" style="color:${laba >= 0 ? '#2E7D32' : '#C62828'}">
-        <span class="label">${laba >= 0 ? '✅ Laba' : '❌ Rugi'}</span>
-        <span class="value">${rupiah(laba)} (${margin.toFixed(1)}%)</span>
-      </div>
-      <div class="simulasi-hasil-item" style="border-bottom:none; font-size:0.75rem; color:#8D6E63;">
-        <span class="label">Biaya per Unit</span>
-        <span class="value">${rupiah(totalBiaya / jmlUnit)}</span>
+
+      <div style="border-top:2px solid #8D6E63; margin:8px 0; padding-top:8px;">
+        <div class="simulasi-hasil-item"><span class="label">Jumlah Unit</span><span class="value">${jmlUnit}</span></div>
+        <div class="simulasi-hasil-item"><span class="label">Harga Jual per Unit</span><span class="value">${rupiah(hargaJual)}</span></div>
+        <div class="simulasi-hasil-item"><span class="label">Biaya per Unit</span><span class="value">${rupiah(biayaPerUnit)}</span></div>
+        <div class="simulasi-hasil-item laba" style="color:${labaPerUnit >= 0 ? '#2E7D32' : '#C62828'}">
+          <span class="label">Laba per Unit</span>
+          <span class="value">${rupiah(labaPerUnit)}</span>
+        </div>
+        <div class="simulasi-hasil-item laba" style="color:${labaTotal >= 0 ? '#2E7D32' : '#C62828'}">
+          <span class="label">Laba Total</span>
+          <span class="value">${rupiah(labaTotal)} (${margin.toFixed(1)}%)</span>
+        </div>
       </div>
     </div>
   `;
   container.style.display = 'block';
-}
-
-// ================================================================
-// HARGA SIMULASI
-// ================================================================
-function renderHargaSimulasi() {
-  const container = document.getElementById('hargaSimulasiContainer');
-  if (!container) return;
-  if (userRole !== 'admin-full') {
-    container.innerHTML = '<p class="text-muted">Hanya admin full yang dapat mengatur harga simulasi.</p>';
-    return;
-  }
-  container.innerHTML = data.bahan.map(b => {
-    const val = data.hargaSimulasi?.[b.id] ?? '';
-    return `<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
-      <span style="font-weight:600; min-width:120px;">${b.nama}</span>
-      <span style="font-size:0.75rem; color:#8D6E63; min-width:40px;">/${b.satuanDasar}</span>
-      <input type="number" step="0.01" class="harga-simulasi-input" data-id="${b.id}" value="${val}" placeholder="Harga simulasi" style="flex:1; min-width:120px;">
-      <span style="font-size:0.7rem; color:#8D6E63;">(aktual: ${rupiah(b.hargaRataRata || 0)})</span>
-    </div>`;
-  }).join('');
-}
-function simpanHargaSimulasi() {
-  if (userRole !== 'admin-full') { showAlert('Hanya admin full!', 'error'); return; }
-  const inputs = document.querySelectorAll('.harga-simulasi-input');
-  let updated = 0;
-  inputs.forEach(inp => {
-    const id = inp.dataset.id;
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val >= 0) {
-      if (!data.hargaSimulasi) data.hargaSimulasi = {};
-      data.hargaSimulasi[id] = val;
-      updated++;
-    }
-  });
-  logAudit('update', 'hargaSimulasi', 'all', `Update ${updated} harga simulasi`, '');
-  renderAll();
-  showAlert('✅ ' + updated + ' harga simulasi berhasil disimpan!');
 }
 
 // ================================================================
@@ -3653,16 +3608,12 @@ function resetAllData() {
   if (!confirm('⚠️ YAKIN? Data akan hilang selamanya!')) return;
   const defaultData = getDefaultData();
   data = defaultData;
-  data.hargaSimulasi = {};
   data.auditLogs = [];
   logAudit('reset', 'all', 'all', 'Reset semua data ke default', '');
   renderAll();
   showAlert('✅ Semua data telah direset ke default.');
 }
 
-// ================================================================
-// HAPUS PEMBELIAN
-// ================================================================
 function hapusPembelian(id) {
   if (userRole !== 'admin-full') { showAlert('Hanya admin full!', 'error'); return; }
   const idx = data.pembelian.findIndex(p => p.id === id);
@@ -3689,7 +3640,6 @@ function hapusPembelian(id) {
   renderAll();
   showAlert('✅ Pembelian dihapus.');
 }
-function updateBiayaOpsKemasan() {}
 
 // ================================================================
 // TAB SWITCHING
@@ -3721,7 +3671,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ================================================================
 // INIT
 // ================================================================
-console.log('🧼 SI.BERSIH v3.6 - Full Version');
+console.log('🧼 SI.BERSIH v3.7 - Full Version (tanpa Harga Simulasi)');
 Object.keys(ALLOWED_EMAILS).forEach(e => console.log('  - ' + e + ' (' + ALLOWED_EMAILS[e] + ')'));
 </script>
 </body>
