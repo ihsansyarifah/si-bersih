@@ -777,7 +777,54 @@ function renderPembelian(){
 function renderFormulasi(){document.getElementById('formTbody').innerHTML=data.formulasi.map(f=>`<tr><td>${f.nama}</td><td>${f.bj}</td><td>${(f.caraPembuatan||'').slice(0,80)}...</td><td><button class="btn btn-warning btn-sm" onclick="editFormulasi('${f.id}')">✏</button> ${userRole==='admin-full'?`<button class="btn btn-danger btn-sm" onclick="hapusFormulasi('${f.id}')">🗑</button>`:''}</td></tr>`).join('');document.getElementById('produksiForm').innerHTML=data.formulasi.map(f=>`<option value="${f.id}">${f.nama}</option>`).join('')}
 function tambahFormulasiDefault(){let f=defaultFormula()[0];if(!data.formulasi.some(x=>x.nama===f.nama)){data.formulasi.push({...f,id:genId()});renderAll()}}
 function tambahFormulasi(){modal('Tambah Formulasi',`<div class="form-group"><label>Nama</label><input id="fNama"></div><div class="form-group"><label>BJ</label><input id="fBj" type="number" step=".001" value="1.025"></div><div class="form-group"><label>Cara Pembuatan</label><textarea id="fCara" rows="8"></textarea></div><p class="small">Setelah dibuat, resep bahan dapat disesuaikan melalui struktur data/default. Versi ini mempertahankan formulasi default utama.</p>`,()=>{data.formulasi.push({id:genId(),nama:fNama.value.trim(),bj:+fBj.value||1.025,caraPembuatan:fCara.value,items:[]});renderAll()})}
-function editFormulasi(id){let f=getForm(id);modal('Edit Formulasi',`<div class="form-group"><label>Nama</label><input id="fNama" value="${f.nama}"></div><div class="form-group"><label>BJ</label><input id="fBj" type="number" step=".001" value="${f.bj}"></div><div class="form-group"><label>Cara Pembuatan</label><textarea id="fCara" rows="8">${f.caraPembuatan||''}</textarea></div>`,()=>{f.nama=fNama.value.trim()||f.nama;f.bj=+fBj.value||f.bj;f.caraPembuatan=fCara.value||f.caraPembuatan;renderAll()})}
+function escHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function editFormulasi(id){
+  let f=getForm(id); if(!f)return;
+  f.items=f.items||[];
+  const bahanOpts=(selected)=>data.bahan.map(b=>`<option value="${b.id}" ${b.id===selected?'selected':''}>${escHtml(b.nama)} (${escHtml(b.satuanDasar)})</option>`).join('');
+  const rows=f.items.map((it,i)=>`<div class="formula-edit-item" data-i="${i}" style="border:1px solid #d6e8e5;border-radius:14px;padding:14px;margin:10px 0;background:#f7fbfa">
+    <div style="display:grid;grid-template-columns:minmax(150px,1.4fr) minmax(90px,.7fr) minmax(70px,.55fr);gap:10px;align-items:end">
+      <div class="form-group"><label>BAHAN</label><select class="edit-bahan">${bahanOpts(it.bahanId)}</select></div>
+      <div class="form-group"><label>PERSENTASE (%)</label><input class="edit-persen" type="text" inputmode="decimal" value="${escHtml(String(it.persen??''))}"></div>
+      <div class="form-group"><label>LANGKAH</label><input class="edit-step" type="number" min="1" step="1" value="${escHtml(String(it.step??i+1))}"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 8px"><input class="edit-larutan" type="checkbox" ${it.isLarutan?'checked':''}> <b>Bahan berupa larutan</b></label>
+    <div class="edit-kons-wrap" style="display:${it.isLarutan?'block':'none'}">
+      <div class="form-group"><label>KONSENTRASI LARUTAN (%)</label><input class="edit-kons" type="text" inputmode="decimal" value="${escHtml(String(it.konsentrasiLarutan??20))}"></div>
+    </div>
+    <button type="button" class="btn btn-danger btn-sm edit-hapus-item">🗑 Hapus bahan</button>
+  </div>`).join('');
+  modal('Edit Formulasi',`
+    <div class="form-group"><label>Nama</label><input id="fNama" value="${escHtml(f.nama)}"></div>
+    <div class="form-group"><label>BJ</label><input id="fBj" type="text" inputmode="decimal" value="${escHtml(String(f.bj))}"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px"><h3 style="margin:0">Detail Bahan & Persentase</h3><button type="button" class="btn btn-primary btn-sm" id="editTambahBahan">＋ Tambah Bahan</button></div>
+    <div id="editFormulaItems">${rows||'<div class="small">Belum ada bahan. Klik “Tambah Bahan”.</div>'}</div>
+    <div class="form-group" style="margin-top:16px"><label>CARA PEMBUATAN</label><textarea id="fCara" rows="10">${escHtml(f.caraPembuatan||'')}</textarea></div>
+    <p class="small">Persentase dipakai langsung untuk menghitung kebutuhan batch. Jika “Bahan berupa larutan” dicentang, stok bahan aktif dihitung sesuai konsentrasi larutan.</p>
+  `,()=>{
+    f.nama=document.getElementById('fNama').value.trim()||f.nama;
+    const bjRaw=document.getElementById('fBj').value.replace(',','.'); f.bj=Number(bjRaw)||f.bj;
+    f.caraPembuatan=document.getElementById('fCara').value;
+    f.items=[...document.querySelectorAll('#editFormulaItems .formula-edit-item')].map((row,i)=>{
+      const persen=Number(row.querySelector('.edit-persen').value.replace(',','.'))||0;
+      const kons=Number(row.querySelector('.edit-kons').value.replace(',','.'))||0;
+      return {bahanId:row.querySelector('.edit-bahan').value,persen,step:Number(row.querySelector('.edit-step').value)||i+1,isLarutan:row.querySelector('.edit-larutan').checked,konsentrasiLarutan:kons};
+    }).filter(x=>x.bahanId);
+    renderAll(); saveData().then(()=>alertx('Formulasi berhasil diperbarui')).catch(e=>alertx('Gagal menyimpan formulasi: '+e.message,'error'));
+  });
+  const container=document.getElementById('editFormulaItems');
+  const bind=()=>{container.querySelectorAll('.formula-edit-item').forEach(row=>{
+    row.querySelector('.edit-larutan').onchange=e=>row.querySelector('.edit-kons-wrap').style.display=e.target.checked?'block':'none';
+    row.querySelector('.edit-hapus-item').onclick=()=>{row.remove();};
+  });};
+  bind();
+  document.getElementById('editTambahBahan').onclick=()=>{
+    const i=container.querySelectorAll('.formula-edit-item').length;
+    const row=document.createElement('div'); row.className='formula-edit-item'; row.dataset.i=i; row.style.cssText='border:1px solid #d6e8e5;border-radius:14px;padding:14px;margin:10px 0;background:#f7fbfa';
+    row.innerHTML=`<div style="display:grid;grid-template-columns:minmax(150px,1.4fr) minmax(90px,.7fr) minmax(70px,.55fr);gap:10px;align-items:end"><div class="form-group"><label>BAHAN</label><select class="edit-bahan">${bahanOpts('')}</select></div><div class="form-group"><label>PERSENTASE (%)</label><input class="edit-persen" type="text" inputmode="decimal" value="0"></div><div class="form-group"><label>LANGKAH</label><input class="edit-step" type="number" min="1" value="${i+1}"></div></div><label style="display:flex;align-items:center;gap:8px;margin:4px 0 8px"><input class="edit-larutan" type="checkbox"> <b>Bahan berupa larutan</b></label><div class="edit-kons-wrap" style="display:none"><div class="form-group"><label>KONSENTRASI LARUTAN (%)</label><input class="edit-kons" type="text" inputmode="decimal" value="20"></div></div><button type="button" class="btn btn-danger btn-sm edit-hapus-item">🗑 Hapus bahan</button>`;
+    container.appendChild(row); bind(); row.scrollIntoView({block:'nearest'});
+  };
+}
 function hapusFormulasi(id){if(confirm('Hapus formulasi?')){data.formulasi=data.formulasi.filter(x=>x.id!==id);renderAll()}}
 
 function calcNeeds(f,liter){let totalBerat=liter*(f.bj||1.025),items=[],cost=0;for(let it of f.items||[]){let b=getBahan(it.bahanId);if(!b)continue;let qty=totalBerat*(it.persen||0)/100;if(it.isLarutan&&it.konsentrasiLarutan>0){/* 1.5% adalah larutan NaOH 20%: bahan stok yang dikonsumsi = 1.5% x 20%. */qty*=it.konsentrasiLarutan/100}let costItem=qty*(b.hargaRataRata||0);cost+=costItem;items.push({...it,bahan:b,qty,cost:costItem})}return{totalBerat,items,cost}}
